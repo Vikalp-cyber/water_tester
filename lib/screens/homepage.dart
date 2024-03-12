@@ -10,7 +10,10 @@ import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:water_tester/customPainter.dart';
 import 'package:water_tester/screens/deviceList.dart';
+import 'package:water_tester/screens/graph.dart';
+import 'package:water_tester/screens/home.dart';
 import 'package:water_tester/screens/services.dart';
+import 'package:water_tester/screens/setting.dart';
 import 'package:water_tester/utils/responsive_size.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -31,8 +34,9 @@ class _MyHomePageState extends State<MyHomePage> {
   List<double> turbidity = [0.4, 1, 3, 2, 5, 10];
   List<int> tds = [200, 100, 300, 400, 500, 350];
   int currentIndex = 0;
-  final int _page = 0;
+  int page = 0;
   final GlobalKey<CurvedNavigationBarState> _bottomNavigationKey = GlobalKey();
+  final List<Widget> _screens = [const Graph(), const Home(), const Setting()];
   @override
   void initState() {
     super.initState();
@@ -42,7 +46,7 @@ class _MyHomePageState extends State<MyHomePage> {
         isBluetoothOn = state == BluetoothState.on;
         if (isBluetoothOn && device.IsDeviceSelected == false) {
           // If Bluetooth is turned on, navigate to the list of dummy devices
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const DeviceList()),
           );
@@ -133,149 +137,29 @@ class _MyHomePageState extends State<MyHomePage> {
                 ],
               ),
             )
-          : SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Material(
-                      elevation: 3,
-                      borderRadius: BorderRadius.circular(10),
-                      child: Container(
-                        decoration: BoxDecoration(
-                            color: const Color.fromARGB(249, 1, 5, 35)
-                                .withOpacity(0.9)),
-                        child: const Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              Icon(
-                                Icons.light_mode,
-                                color: Colors.yellow,
-                              ),
-                              Text(
-                                "24 C",
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              Text(
-                                "06 March 2023",
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: ResponsiveSize.height(context, 0.03),
-                  ),
-                  Center(
-                    child: CircularWaterQualityContainer(
-                        percentage: percent[currentIndex]),
-                  ),
-                  const SizedBox(
-                    height: 60,
-                  ),
-                  Container(
-                      margin: EdgeInsets.only(
-                          left: ResponsiveSize.width(context, 0.05),
-                          right: ResponsiveSize.width(context, 0.05)),
-                      child: GridView(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2),
-                        children: [
-                          ParameterContainer(
-                              context,
-                              "assets/icons/tempreture.svg",
-                              "Tempreture",
-                              "${temperature[currentIndex]}C"),
-                          ParameterContainer(context, "assets/icons/ph.svg",
-                              "pH", ph[currentIndex].toString()),
-                          ParameterContainer(
-                              context,
-                              "assets/icons/turbidity.svg",
-                              "Turbidity",
-                              turbidity[currentIndex].toString()),
-                          ParameterContainer(
-                              context,
-                              "assets/icons/tempreture.svg",
-                              "TDS",
-                              "${tds[currentIndex]} mg/l"),
-                        ],
-                      ))
-                ],
-              ),
-            ),
-      bottomNavigationBar: CurvedNavigationBar(
-        key: _bottomNavigationKey,
-        items: const [
-          CurvedNavigationBarItem(child: Icon(Icons.search), label: 'Search'),
-          CurvedNavigationBarItem(child: Icon(Icons.home), label: 'Home'),
-          CurvedNavigationBarItem(
-              child: Icon((Icons.settings)), label: 'Settings'),
-        ],
-        color: Colors.white,
-        backgroundColor: const Color.fromARGB(255, 33, 54, 243),
-        animationDuration: const Duration(milliseconds: 700),
-        index: 1,
-      ),
-    );
-  }
-
-  Padding ParameterContainer(
-      BuildContext context, String iconPath, String title, String value) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Material(
-        elevation: 3,
-        borderRadius: BorderRadius.circular(10),
-        child: Container(
-          width: ResponsiveSize.width(context, 0.4),
-          decoration: BoxDecoration(
-              color: const Color.fromARGB(249, 1, 5, 35).withOpacity(0.9)),
-          child: Padding(
-            padding: const EdgeInsets.all(13.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  height: ResponsiveSize.height(context, 0.035),
-                  width: ResponsiveSize.width(context, 0.07),
-                  child: SvgPicture.asset(
-                    iconPath,
-                    color: const Color.fromARGB(255, 33, 54, 243),
-                  ),
-                ),
-                SizedBox(
-                  height: ResponsiveSize.height(context, 0.015),
-                ),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                  ),
-                ),
-                SizedBox(
-                  height: ResponsiveSize.height(context, 0.03),
-                ),
-                Text(
-                  value,
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: ResponsiveSize.textSize(context, 0.07)),
-                )
+          : _screens[page],
+      bottomNavigationBar: !isBluetoothOn
+          ? null
+          : CurvedNavigationBar(
+              key: _bottomNavigationKey,
+              items: const [
+                CurvedNavigationBarItem(
+                    child: Icon(Icons.auto_graph_rounded), label: 'Graph'),
+                CurvedNavigationBarItem(child: Icon(Icons.home), label: 'Home'),
+                CurvedNavigationBarItem(
+                    child: Icon((Icons.settings)), label: 'Settings'),
               ],
+              color: Colors.white,
+              backgroundColor: const Color.fromARGB(255, 33, 54, 243),
+              animationDuration: const Duration(milliseconds: 700),
+              index: 0,
+              onTap: (index) {
+                // Handle bottom navigation item tap
+                setState(() {
+                  page = index;
+                });
+              },
             ),
-          ),
-        ),
-      ),
     );
   }
 }
